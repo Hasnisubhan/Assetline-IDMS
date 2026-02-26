@@ -20,13 +20,7 @@ body {
     max-width: 360px;
     text-align: center;
     padding: 20px;
-}
-
-/* 2. Header Section */
-h1 {
-    font-size: 3.5rem;
-    font-weight: 400;
-    margin-bottom: 5px;
+    margin-top: 20px;
 }
 
 .company-name {
@@ -124,4 +118,46 @@ footer {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* 1. Navigation Bar Container */
+.top-nav {
+    background-color: #353c48; /* Slightly lighter/different dark shade for the top */
+    width: 100%;
+    padding: 60px 0 40px 0; /* Plenty of top space like the image */
+    position: relative;
+    text-align: center;
+}
+
+.nav-content h1 {
+    font-size: 3.5rem;
+    font-weight: 400;
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.nav-content .company-label {
+    font-size: 0.85rem;
+    color: #8a96a3;
+    text-transform: none;
+}
+
+/* 2. The Triangle Pointer (The "V" shape at the bottom) */
+.nav-pointer {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 10px solid #353c48; /* Matches nav background */
+}
+
+/* 3. Adjusting the Layout */
+body {
+    flex-direction: column; /* Stack Nav above the Form */
+    justify-content: flex-start; /* Start from top instead of middle */
 }

